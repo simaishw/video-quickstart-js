@@ -28,7 +28,7 @@
       <div class="row" id="room">
         <div id="participants" class="col-xs-12 col-sm-3 col-md-2" style="text-align: center"></div>
         <div id="active-participant" class="col-xs-12 col-sm-9 col-md-10" style="text-align: center">
-          <div class="participant main">
+          <div class="participant main" id="media-container">
             <video autoplay playsinline muted></video>
           </div>
         </div>
@@ -115,8 +115,78 @@
         </div>
       </div>
     </div>
+
+
+
+
+    <!--local mediacontrols-->
+
+ 
+<div class="col-sm-6">
+<div class="card">
+  <div class="card-block">
+    <h4 class="card-title">Local Media Controls</h4>
+    <div id="userControls">
+      <button id="muteAudioBtn" class="btn btn-primary btn-block" >Disable Audio</button>
+      <button id="muteVideoBtn" class="btn btn-primary btn-block" >Disable Video</button>
+    </div>
+  </div>
+</div>
+    <div class="card">
+      <div class="card-block">
+        <h4 class="card-title">RemoteParticipant View</h4>
+        <div id="media-container">
+          <div id="videopreview">
+          </div>
+          <div id="audiopreview">
+            <span>
+              <i id="activeIcon" class="fas fa-volume-up"></i>
+            </span>
+            <span>
+              <i id="inactiveIcon" class="fas fa-volume-mute"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+
+<!--ends here-->
+
+        <!--local snapshot--> 
+        
+          <button id="takesnapshot" class="btn btn-primary btn-block">Take Snapshot</button>
+    
+          <div class="card">
+            <div class="card-block">
+              <h4 class="card-title">Snapshot</h4>
+              <canvas class="snapshot-canvas hidden"></canvas>
+              <img class="snapshot-img hidden"></img>
+            </div>
+          </div>
+    
+    <!--endshere-->
+
+    
+       <!--autorender Dimesion-->
+    <button id="#" class="btn btn-primary btn-block">Render Dimension</button>
+    <br>
+    <div class="card-block">
+      Video Size:
+      <select id= "renderDimensionsOption" class="btn btn-primary dropdown-toggle disabled">
+        <option value="" disabled selected hidden>Render Dimensions</option>
+        <option value="qHD">960x540</option>
+        <option value="VGA">640x480</option>
+        <option value="QCIF">640x360</option> 
+      </select>
+    </div>
+     <!--ended--> 
+
+
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="index.js"></script>
+
+
   </body>
+
 </html>
