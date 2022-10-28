@@ -15,6 +15,7 @@ const $selectCameraModal = $('#select-camera', $modals);
 const $showErrorModal = $('#show-error', $modals);
 const $joinRoomModal = $('#join-room', $modals);
 
+
 // ConnectOptions settings for a video web application.
 const connectOptions = {
   // Available only in Small Group or Group Rooms only. Please set "Room Type"
@@ -148,3 +149,184 @@ async function selectMicrophone() {
 window.addEventListener('load', isSupported ? selectMicrophone : () => {
   showError($showErrorModal, new Error('This browser is not supported.'));
 });
+
+
+
+const mediaContainer = document.querySelector('div#media-container');
+const renderDimensionsOption = document.querySelector('select#renderDimensionsOption');
+
+
+const renderDimensionsObj = {
+  qHD: { width: 960, height: 540 },
+  VGA: { width: 640, height: 480 },
+  QCIF: { width: 640, height: 360}
+}
+
+// Adjust Remote Video element size.
+renderDimensionsOption.addEventListener('change', () => {
+  const renderDimensions = renderDimensionsObj[renderDimensionsOption.value];
+  mediaContainer.style.height = `${renderDimensions.height}px`;
+  mediaContainer.style.width = `${renderDimensions.width}px`;
+});
+
+
+var Prism = require('prismjs');
+var getSnippet = require('../../examples/util/getsnippet');
+var helpers = require('./helpers');
+var displayLocalVideo = helpers.displayLocalVideo;
+var takeLocalVideoSnapshot = helpers.takeLocalVideoSnapshot;
+
+var canvas = document.querySelector('.snapshot-canvas');
+var img = document.querySelector('.snapshot-img');
+var takeSnapshot = document.querySelector('button#takesnapshot');
+var video = document.querySelector('video#videoinputpreview');
+
+let videoTrack;
+let el;
+
+// Show image or canvas
+window.onload = function() {
+  el = window.ImageCapture ? img : canvas;
+  el.classList.remove('hidden');
+  if(videoTrack) {
+    setSnapshotSizeToVideo(el, videoTrack);
+  }
+}
+
+// Set the canvas size to the video size.
+function setSnapshotSizeToVideo(snapshot, video) {
+  snapshot.width = video.dimensions.width;
+  snapshot.height = video.dimensions.height;
+}
+
+// Load the code snippet.
+getSnippet('./helpers.js').then(function(snippet) {
+  var pre = document.querySelector('pre.language-javascript');
+  pre.innerHTML = Prism.highlight(snippet, Prism.languages.javascript);
+});
+
+// Request the default LocalVideoTrack and display it.
+displayLocalVideo(video).then(function(localVideoTrack) {
+  // Display a snapshot of the LocalVideoTrack on the canvas.
+  videoTrack = localVideoTrack;
+  takeSnapshot.onclick = function() {
+    setSnapshotSizeToVideo(el, localVideoTrack);
+    takeLocalVideoSnapshot(video, localVideoTrack, el);
+  };
+});
+
+// Resize the canvas to the video size whenever window is resized.
+window.onresize = function() {
+  setSnapshotSizeToVideo(el, videoTrack);
+};
+
+//local audio video mute ------------------------------------------------------->>>>>>>>>>>>>>>
+
+
+//const Prism = require('prismjs');
+const Video = require('twilio-video');
+//const getSnippet = require('../../examples/util/getsnippet');
+const getRoomCredentials = require('../../examples/util/getroomcredentials');
+const helperss = require('./helperss');
+const muteYourAudio = helperss.muteYourAudio;
+const muteYourVideo = helperss.muteYourVideo;
+const unmuteYourAudio = helperss.unmuteYourAudio;
+const unmuteYourVideo = helperss.unmuteYourVideo;
+const participantMutedOrUnmutedMedia = helperss.participantMutedOrUnmutedMedia;
+
+const audioPreview = document.getElementById('audiopreview');
+const videoPreview = document.getElementById('videopreview');
+let roomName = null;
+
+(async function(){
+  // Load the code snippet.
+
+  // Get the credentials to connect to the Room.
+  const credsP1 = await getRoomCredentials();
+  const credsP2 = await getRoomCredentials();
+
+  // Create room instance and name for participants to join.
+  const roomP1 = await Video.connect(credsP1.token);
+
+  // Set room name for participant 2 to join.
+  roomName = roomP1.name;
+
+  // Connecting remote participants.
+  const roomP2 = await Video.connect(credsP2.token, {
+    name: roomName,
+    tracks: []
+  });
+
+  // Muting audio track and video tracks click handlers
+  muteAudioBtn.onclick = () => {
+    const mute = !muteAudioBtn.classList.contains('muted');
+    const activeIcon = document.getElementById('activeIcon');
+    const inactiveIcon = document.getElementById('inactiveIcon');
+
+    if(mute) {
+      muteYourAudio(roomP1);
+      muteAudioBtn.classList.add('muted');
+      muteAudioBtn.innerText = 'Enable Audio';
+      activeIcon.id = 'inactiveIcon';
+      inactiveIcon.id = 'activeIcon';
+
+    } else {
+      unmuteYourAudio(roomP1);
+      muteAudioBtn.classList.remove('muted');
+      muteAudioBtn.innerText = 'Disable Audio';
+      activeIcon.id = 'inactiveIcon';
+      inactiveIcon.id = 'activeIcon';
+    }
+  }
+
+  muteVideoBtn.onclick = () => {
+    const mute = !muteVideoBtn.classList.contains('muted');
+
+    if(mute) {
+      muteYourVideo(roomP1);
+      muteVideoBtn.classList.add('muted');
+      muteVideoBtn.innerText = 'Enable Video';
+    } else {
+      unmuteYourVideo(roomP1);
+      muteVideoBtn.classList.remove('muted');
+      muteVideoBtn.innerText = 'Disable Video';
+    }
+  }
+
+  // Starts video upon P2 joining room
+  roomP2.on('trackSubscribed', track => {
+    if (track.isEnabled) {
+      if (track.kind === 'audio') {
+        audioPreview.appendChild(track.attach());
+      } else{
+        videoPreview.appendChild(track.attach());
+      }
+    }
+  });
+
+  participantMutedOrUnmutedMedia(roomP2, track => {
+    track.detach().forEach(element => {
+      element.srcObject = null;
+      element.remove();
+    });
+  }, track => {
+      if (track.kind === 'audio') {
+        audioPreview.appendChild(track.attach());
+      }
+      if (track.kind === 'video') {
+        videoPreview.appendChild(track.attach());
+      }
+  });
+
+  // Disconnect from the Room
+  window.onbeforeunload = () => {
+    roomP1.disconnect();
+    roomP2.disconnect();
+    roomName = null;
+  }
+}());
+
+
+//screenshare --------------------------------------------------------->>>>>>>>>
+
+
